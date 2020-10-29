@@ -25,7 +25,7 @@ module.exports = class StockX {
         this.currency = 'USD';
         this.cookieJar = request.jar();
         this.loggedIn = false;
-        this.userAgent = userAgent !== undefined ? userAgent : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36';
+        this.userAgent = userAgent !== undefined ? userAgent : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36';
 
         this.currency = currency == undefined ? 'USD' : currency;
         this.proxy = proxy == undefined || proxy.trim() == '' ? undefined : formatProxy(proxy);
@@ -116,32 +116,22 @@ module.exports = class StockX {
      * @param {Object} product - The product object
      * @param {Object} options 
      * @param {number} options.amount - The amount to place the bid for
-     * @param {string} options.size - The requested size
      */
-    async placeBid(product, options = {}){
+    async placeBid(skuUuid, options = {}){
         //Convert amount to numeral type
         const amount = Number(options.amount);
-        const requestedSize = options.size;
 
         //Verify fields passed in by user
         if (!this.loggedIn) throw new Error("You must be logged in before placing a bid!");
         else if (amount == NaN) throw new Error("Amount is incorrect, please ensure your parameters are correctly formatted.");
-        else if (requestedSize == undefined) throw new Error("Please specify a size to bid on!");
-        else if (product == undefined) throw new Error("A product must be specified!");
-        else if (typeof product == 'string') throw new Error("The product passed in must an object. Use fetchProductDetails() to get the details first.");
-        else if (product.variants == undefined) throw new Error("No variants found in product! Please check the product object passed in.");
+        else if (skuUuid == undefined) throw new Error("A product must be specified!");
 
-        //Get size from requestedSize in the product variants
-        const size = requestedSize.toLowerCase() == 'random' ? product.variants[Math.floor(Math.random() * product.variants.length)] : product.variants.find(variant => variant.size == requestedSize);
-        
         //Check if getting size was successful
-        if (size == undefined) throw new Error("No variant found for the requested size!"); 
-        if (size.uuid == undefined || size.uuid == "") throw new Error("No variant ID found for the requested size!");  
-        
+
         //Place bid
         const response = await placeBid(this.token, {
             amount: amount, 
-            variantID: size.uuid, 
+            variantID: skuUuid,
             currency: this.currency, 
             cookieJar: this.cookieJar, 
             proxy: this.proxy,
@@ -249,7 +239,7 @@ module.exports = class StockX {
 
     /**
      * 
-     * @param {Object} bid - The previous ask object
+     * @param {string} bid - The previous ask object
      * @param {number} bid.id - The id of the ask
      */
     async deleteBid(bid){
@@ -259,7 +249,7 @@ module.exports = class StockX {
 
         //Delete bid
         const response = await deleteBid(this.token, {
-            bidID: bid.id, 
+            bidID: bid,
             cookieJar: this.cookieJar, 
             proxy: this.proxy,
             userAgent: this.userAgent

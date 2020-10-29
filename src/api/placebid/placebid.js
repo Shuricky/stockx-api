@@ -1,6 +1,8 @@
 const request = require('request-promise');
 const moment = require('moment');
 
+//This one works: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+
 module.exports = async (bearer, options) => {
     const { amount, variantID, currency, proxy, cookieJar, userAgent } = options;
     const expiresAt = moment().add(30, 'days').utc().format();
@@ -9,7 +11,9 @@ module.exports = async (bearer, options) => {
         uri: 'https://stockx.com/api/portfolio?a=bid',
         method: 'POST',
         headers: {
-            'Host': 'stockx.com',
+            'authority': 'stockx.com',
+            'path': '/api/portfolio?a=bid',
+            'scheme': 'https',
             'sec-fetch-mode': 'cors',
             'origin': 'https://stockx.com',
             'authorization': `Bearer ${bearer}`,
@@ -23,12 +27,18 @@ module.exports = async (bearer, options) => {
             'accept-language': 'en-US,en;q=0.9',
         },
         json: {
-            PortfolioItem: {
-                localAmount: amount,
-                skuUuid: variantID,
-                localCurrency: currency,
-                expiresAt: expiresAt
-            }
+            "action": "bid",
+            "PortfolioItem": {
+                "localAmount": amount,
+                "expiresAt": "2020-11-16T06:38:19+0000",
+                "skuUuid": variantID,
+                "localCurrency": "USD",
+                "meta": {
+                    "discountCode": "",
+                    "deviceData": "{\"correlation_id\":\"4b3e83b67166473fbb0b1bc3a848960f\"}"
+                }
+            },
+            "item": null
         },
         jar: cookieJar,
         simple: false,
@@ -46,6 +56,6 @@ module.exports = async (bearer, options) => {
 
     return {
         id: res.body.PortfolioItem.chainId,
-        response: res.body
+        //response: res.body
     };
 };

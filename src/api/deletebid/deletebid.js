@@ -4,8 +4,11 @@ module.exports = async (bearer, options) => {
     const { bidID, cookieJar, proxy, userAgent } = options;
     
     const res = await request({
-        uri: `https://stockx.com/api/portfolio/${bidID}`,
+        uri: `https://stockx.com/api/portfolio/` + bidID,
         headers: {
+            'authority': 'stockx.com',
+            'path': '/api/portfolio/' + bidID,
+            'scheme': 'https',
             'Host': 'stockx.com',
             'sec-fetch-mode': 'cors',
             'origin': 'https://stockx.com',
@@ -23,7 +26,7 @@ module.exports = async (bearer, options) => {
         jar: cookieJar, 
         proxy,
         json: {
-            "chain_id": bidID.toString(),
+            "chain_id": bidID,
             "notes": "Customer Removed Bid"
         },
         simple: false,
